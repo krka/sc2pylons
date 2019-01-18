@@ -71,3 +71,15 @@ where ` ` means out of range, `#` is a buildable cell, `P` is where pylon itself
 To get an upper bound of the number of 3x3 buildings we can place on this grid, we take the number of `#` cells and divide by `3*3`: `172 / 9 = 19.111...`
 
 It's therefore not possible to place more than 19 3x3 buildings for a single pylon.
+
+# Finding an exact solution
+
+How do we find an optimal solution to this? We could obviously try all combinations of placements for 19 buildings until we find something that works.
+Since we have 172 buildable cells, that would mean `172 * 171 * .. * 154` combinations - far too many to do efficiently.
+
+A better approach would be to do it with Dynamic Programming. We evaluate one row at a time and keep track of how many buildings we have placed so far, as well as a bitmap of which cells we have filled in the two rows above. If we encounter the same bitmap twice, we keep the one with the highest number of buildings.
+
+This is somewhat feasible approach. For each row we visit, we'll need to evaluate all combinations of placements on that row, which is on the order of `2^N` (but our N is 14 so it's ok). For each such combination we also need to compare against our bitmap. The bitmap is of size `2*N` so there could be up to `2^(2*N)` of them. For each row we get a total runtime of `2^(3N)`. Fortunately since we're only placing 3x3 buildings on the grid, most of the combinations can be filtered out so it's less than that in practice.
+
+We then need to do this for each row, so we end up with: `N*2^(3N)`.
+
