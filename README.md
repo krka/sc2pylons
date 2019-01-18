@@ -17,4 +17,53 @@ Naturally, it's interesting to know how many buildings of size 3x3 can be powere
 
 Let's start by reducing the problem to a purely two-dimensional grid problem.
 
-Since buildings must be constructed on the grid, it's easy to determine which cells can be powered by a pylon.
+Since buildings must be constructed on the grid, it's easy to determine which cells can be powered by a pylon:
+```java
+        final double pylonRange2 = 6.5 * 6.5;
+        final int size = 14;
+        final int center = size / 2;
+        final boolean[][] grid = new boolean[size][size];
+        for (int i = 1; i < size - 1; i++) {
+            for (int j = 1; j < size - 1; j++) {
+                double dx = i - center + 0.5;
+                double dy = j - center + 0.5;
+                double d2 = dx * dx + dy * dy;
+                if (d2 <= pylonRange2) {
+                    for (int k = 0; k < 3; k++) {
+                        for (int l = 0; l < 3; l++) {
+                            grid[i + k - 1][j + l - 1] = true;
+                        }
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                String c = grid[i][j] ? "#" : " ";
+                if ((i == center || i == center - 1) && (j == center || j == center - 1)) {
+                    c = "P";
+                }
+                System.out.print(c);
+            }
+            System.out.println();
+        }
+```
+
+We then get this output:
+```
+   ########   
+ ############ 
+ ############ 
+##############
+##############
+##############
+######PP######
+######PP######
+##############
+##############
+##############
+ ############ 
+ ############ 
+   ########   
+```
+where ` ` means out of range, `#` is a buildable cell, `P` is where pylon itself is positioned.
