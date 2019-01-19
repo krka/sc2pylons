@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 
 class State {
 
@@ -60,48 +61,27 @@ class State {
         }
     }
 
-    @Override
-    public String toString() {
-        final char[][] output = new char[size][size];
-        for (int row = 0; row < size; row++) {
-            for (int column = 0; column < size; column++) {
-                output[row][column] = grid[row][column] ? '#' : '.';
-            }
-        }
-        final int center = size / 2 - 1;
-        output[center][center] = '╔';
-        output[center][center + 1] = '╗';
-        output[center + 1][center] = '╚';
-        output[center + 1][center + 1] = '╝';
-
-        makeString(output);
-        final StringBuilder stringBuilder = new StringBuilder();
-        for (int row = 0; row < size; row++) {
-            for (int column = 0; column < size; column++) {
-                stringBuilder.append(output[row][column]);
-            }
-            stringBuilder.append('\n');
-        }
-        return stringBuilder.toString();
+    public Placements toPlacements() {
+        List<Placements.Point> points = new ArrayList<>();
+        addPoints(points);
+        return new Placements(grid, points);
     }
 
-    private void makeString(final char[][] output) {
+    private void addPoints(List<Placements.Point> points) {
         for (int column = 0; column < size - 2; column++) {
             if (((1 << column) & combination) != 0) {
-                output[row][column] = '┌';
-                output[row][column + 1] = '─';
-                output[row][column + 2] = '┐';
-                output[row + 1][column] = '│';
-                output[row + 1][column + 1] = ' ';
-                output[row + 1][column + 2] = '│';
-                output[row + 2][column] = '└';
-                output[row + 2][column + 1] = '─';
-                output[row + 2][column + 2] = '┘';
+                // add the center, not the top left
+                points.add(new Placements.Point(row + 1, column + 1));
             }
         }
         if (prev != null) {
-            prev.makeString(output);
+            prev.addPoints(points);
         }
+    }
+
+    @Override
+    public String toString() {
+        return toPlacements().toString();
     }
 
     public void addOther(final State other) {

@@ -1,5 +1,6 @@
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class Solver {
     private final boolean[][] grid;
@@ -17,9 +18,56 @@ class Solver {
         final State solution = solver.solve();
         System.out.println("Best score: " + solution.getScore());
         System.out.println("Number of solutions: " + solution.countSolutions());
-        System.out.println("Solution:\n" + solution.toString());
-        System.out.println("All solutions:\n");
-        solution.getAllSolutions().forEach(System.out::println);
+
+        final List<Placements> distinct = solution.getAllSolutions().stream()
+                .map(State::toPlacements)
+                .map(Placements::getCanonical)
+                .distinct()
+                .collect(Collectors.toList());
+        System.out.println("Number of distinct solutions: " + distinct.size());
+        partition(distinct, 10).forEach(solutions -> System.out.println(joinLines(solutions)));
+    }
+
+    private static String joinLines(List<Placements> list) {
+        List<List<String>> listList = list.stream()
+                .map(Placements::toString)
+                .map(s -> s.split("\n")).map(Arrays::asList)
+                .collect(Collectors.toList());
+
+        final int rows = listList.iterator().next().size();
+        int columns = listList.size();
+
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                List<String> strings = listList.get(j);
+                sb.append(strings.get(i));
+                if (j == columns - 1) {
+                    sb.append("\n");
+                } else {
+                    sb.append("    ");
+                }
+            }
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    private static <T> List<List<T>> partition(List<T> list, int count) {
+        Iterator<T> iterator = list.iterator();
+        List<List<T>> result = new ArrayList<>();
+        List<T> current = new ArrayList<>();
+        while (iterator.hasNext()) {
+            current.add(iterator.next());
+            if (current.size() >= count) {
+                result.add(current);
+                current = new ArrayList<>();
+            }
+        }
+        if (current.size() >= count) {
+            result.add(current);
+        }
+        return result;
     }
 
     private State solve() {
@@ -28,7 +76,6 @@ class Solver {
 
         for (int row = 0; row < size - 2; row++) {
             states = solveRow(row, states);
-            System.out.println("Number of states after row " + row + ": " + states.size());
         }
         int bestScore = states.values().stream().max(Comparator.comparing(State::getScore)).get().getScore();
         final List<State> allSolutions = states.values().stream().filter(state -> state.getScore() == bestScore).collect(Collectors.toList());
