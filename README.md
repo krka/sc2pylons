@@ -75,7 +75,7 @@ It's therefore not possible to place more than 19 3x3 buildings for a single pyl
 # Finding an exact solution
 
 How do we find an optimal solution to this? We could obviously try all combinations of placements for 19 buildings until we find something that works.
-Since we have 172 buildable cells, that would mean `172 * 171 * .. * 154` combinations - far too many to do efficiently.
+We have 172 buildable cells, and 108 possible 3x3 building placements, so that would mean we need to try `108 * 107 * .. * 90` combinations - far too many to do efficiently.
 
 A better approach would be to do it with Dynamic Programming. We evaluate one row at a time and keep track of how many buildings we have placed so far, as well as a bitmap of which cells we have filled in the two rows above. If we encounter the same bitmap twice, we keep the one with the highest number of buildings.
 
@@ -83,3 +83,28 @@ This is somewhat feasible approach. For each row we visit, we'll need to evaluat
 
 We then need to do this for each row, so we end up with: `N*2^(3N)`.
 
+This can be implemented efficiently and we get the following output:
+```
+Best score: 16
+Solution:
+...#┌─┐┌─┐#...
+.┌─┐│ ││ │┌─┐.
+.│ │└─┘└─┘│ │.
+#└─┘┌─┐┌─┐└─┘#
+┌─┐#│ ││ │#┌─┐
+│ │#└─┘└─┘#│ │
+└─┘┌─┐╔╗┌─┐└─┘
+┌─┐│ │╚╝│ │┌─┐
+│ │└─┘##└─┘│ │
+└─┘#┌─┐┌─┐#└─┘
+#┌─┐│ ││ │┌─┐#
+.│ │└─┘└─┘│ │.
+.└─┘######└─┘.
+...########...
+```
+
+(This only is only one of many possible solutions).
+
+# The code
+
+All of the code for computing this is inside this repository!
