@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
 class Solver {
     private final boolean[][] grid;
@@ -8,24 +9,35 @@ class Solver {
     private Solver(final boolean[][] grid) {
         this.grid = grid;
         size = grid.length;
-        combinations = (1 << size);
+        combinations = (1 << (size - 2));
     }
 
     public static void main(String[] args) {
         final Solver solver = new Solver(GenerateInput.getGrid(14));
         final State solution = solver.solve();
         System.out.println("Best score: " + solution.getScore());
+        System.out.println("Number of solutions: " + solution.countSolutions());
         System.out.println("Solution:\n" + solution.toString());
+        System.out.println("All solutions:\n");
+        solution.getAllSolutions().forEach(System.out::println);
     }
 
     private State solve() {
         HashMap<Integer, State> states = new HashMap<>();
-        maybeAddState(states, new State(grid, null, -1, 0, 0, 0));
+        maybeAddState(states, new State(grid, null, -1, 0, 0, 0, 0));
 
         for (int row = 0; row < size - 2; row++) {
             states = solveRow(row, states);
+            System.out.println("Number of states after row " + row + ": " + states.size());
         }
-        return states.values().stream().max(Comparator.comparing(State::getScore)).get();
+        int bestScore = states.values().stream().max(Comparator.comparing(State::getScore)).get().getScore();
+        final List<State> allSolutions = states.values().stream().filter(state -> state.getScore() == bestScore).collect(Collectors.toList());
+        final Iterator<State> iterator = allSolutions.iterator();
+        final State result = iterator.next();
+        while (iterator.hasNext()) {
+            result.addOther(iterator.next());
+        }
+        return result;
     }
 
     private HashMap<Integer, State> solveRow(int row, HashMap<Integer, State> states) {
@@ -54,9 +66,22 @@ class Solver {
                 numPlacements++;
             }
         }
-        final int bitmask = (state.getBitmask() << 16) | (combination | combination << 1 | combination << 2);
+
+        final int newRow = combination | combination << 1 | combination << 2;
+
+        // Filling out starting from row $row, so new bitmask should be $row + 1 and $row + 2
+        // $row + 1 is merged from previous $row + 2 and newRow
+        // $row + 2 is newRow
+        final int newBitmask1 = newRow | state.getBitmask2();
+
         final int newScore = state.getScore() + numPlacements;
-        return new State(grid, state, row, newScore, bitmask, combination);
+        final State newState = new State(grid, state, row, newScore, newBitmask1, newRow, combination);
+
+        if ((state.getBitmask2() & newRow) != 0) {
+            throw new RuntimeException("Assertion failure");
+        }
+
+        return newState;
     }
 
     private boolean canPlace(int row, int column, State state) {
@@ -71,9 +96,14 @@ class Solver {
     }
 
     private void maybeAddState(HashMap<Integer, State> states, State state) {
-        final State prevState = states.get(state.getBitmask());
-        if (prevState == null || state.getScore() > prevState.getScore()) {
-            states.put(state.getBitmask(), state);
+        final int key = state.getBitmask1() | (state.getBitmask2() << 16);
+        final State prevState = states.get(key);
+        if (prevState == null) {
+            states.put(key, state);
+        } else if (state.getScore() > prevState.getScore()) {
+            states.put(key, state);
+        } else if (state.getScore() == prevState.getScore()) {
+            prevState.addOther(state);
         }
     }
 
