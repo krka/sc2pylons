@@ -3,6 +3,7 @@ class GenerateInput {
         final int size = 14;
         final boolean[][] grid = getGrid(size);
         System.out.println("Number of buildable cells: " + countCells(grid));
+        System.out.println("Number of 3x3 placements: " + count3x3StartCells(grid));
         printGrid(size, grid);
     }
 
@@ -16,6 +17,29 @@ class GenerateInput {
             }
         }
         return sum;
+    }
+
+    private static int count3x3StartCells(final boolean[][] grid) {
+        int sum = 0;
+        for (int i = 0; i < grid.length - 2; i++) {
+            for (int j = 0; j < grid.length - 2; j++) {
+                if (canPlace(grid, i, j)) {
+                    sum++;
+                }
+            }
+        }
+        return sum;
+    }
+
+    private static boolean canPlace(final boolean[][] grid, final int row, final int column) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (!grid[row + i][column + j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private static void printGrid(final int size, final boolean[][] grid) {
