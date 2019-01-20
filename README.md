@@ -64,7 +64,9 @@ X............X
 ..............
 X............X
 X............X
-XXX........XXX```
+XXX........XXX
+```
+
 where `X` means out of range, `.` is a buildable cell, `P` is where pylon itself is positioned.
 
 To get an upper bound of the number of 3x3 buildings we can place on this grid, we take the number of `#` cells and divide by `3*3`: `172 / 9 = 19.111...`
