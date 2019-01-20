@@ -39,7 +39,7 @@ Since buildings must be constructed on the grid, it's easy to determine which ce
         }
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                String c = grid[i][j] ? "#" : " ";
+                String c = grid[i][j] ? "." : "X";
                 if ((i == center || i == center - 1) && (j == center || j == center - 1)) {
                     c = "P";
                 }
@@ -51,22 +51,21 @@ Since buildings must be constructed on the grid, it's easy to determine which ce
 
 We then get this output:
 ```
-   ########   
- ############ 
- ############ 
-##############
-##############
-##############
-######PP######
-######PP######
-##############
-##############
-##############
- ############ 
- ############ 
-   ########   
-```
-where ` ` means out of range, `#` is a buildable cell, `P` is where pylon itself is positioned.
+XXX........XXX
+X............X
+X............X
+..............
+..............
+..............
+......PP......
+......PP......
+..............
+..............
+..............
+X............X
+X............X
+XXX........XXX```
+where `X` means out of range, `.` is a buildable cell, `P` is where pylon itself is positioned.
 
 To get an upper bound of the number of 3x3 buildings we can place on this grid, we take the number of `#` cells and divide by `3*3`: `172 / 9 = 19.111...`
 

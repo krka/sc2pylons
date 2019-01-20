@@ -45,7 +45,7 @@ class GenerateInput {
     private static void printGrid(final int size, final boolean[][] grid) {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                char c = grid[i][j] ? '#' : ' ';
+                char c = grid[i][j] ? '.' : 'X';
                 if (isCenter(i, size) && isCenter(j, size)) {
                     c = 'P';
                 }
