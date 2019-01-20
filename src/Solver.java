@@ -1,6 +1,5 @@
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class Solver {
     private final boolean[][] grid;
@@ -13,19 +12,26 @@ class Solver {
         combinations = (1 << (size - 2));
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         final Solver solver = new Solver(GenerateInput.getGrid(14));
         final State solution = solver.solve();
         System.out.println("Best score: " + solution.getScore());
         System.out.println("Number of solutions: " + solution.countSolutions());
 
-        final List<Placements> distinct = solution.getAllSolutions().stream()
+        final Map<Integer, List<Placements>> distinct = solution.getAllSolutions().stream()
                 .map(State::toPlacements)
                 .map(Placements::getCanonical)
                 .distinct()
-                .collect(Collectors.toList());
-        System.out.println("Number of distinct solutions: " + distinct.size());
-        partition(distinct, 10).forEach(solutions -> System.out.println(joinLines(solutions)));
+                .collect(Collectors.groupingBy(Placements::symmetries));
+        System.out.println("Number of distinct solutions: " + distinct.values().stream().mapToInt(List::size).sum());
+        for (int i = 0; i <= 8; i++) {
+            final List<Placements> placements = distinct.get(i);
+            if (placements != null) {
+                System.out.println("Symmetry score " + i + ":");
+                final List<List<Placements>> partitions = partition(placements, 10);
+                partitions.forEach(solutions -> System.out.println(joinLines(solutions)));
+            }
+        }
     }
 
     private static String joinLines(List<Placements> list) {
@@ -53,9 +59,9 @@ class Solver {
         return sb.toString();
     }
 
-    private static <T> List<List<T>> partition(List<T> list, int count) {
-        Iterator<T> iterator = list.iterator();
-        List<List<T>> result = new ArrayList<>();
+    private static <T> List<List<T>> partition(final List<T> list, final int count) {
+        final Iterator<T> iterator = list.iterator();
+        final List<List<T>> result = new ArrayList<>();
         List<T> current = new ArrayList<>();
         while (iterator.hasNext()) {
             current.add(iterator.next());
@@ -64,7 +70,7 @@ class Solver {
                 current = new ArrayList<>();
             }
         }
-        if (current.size() >= count) {
+        if (current.size() > 0) {
             result.add(current);
         }
         return result;
@@ -77,7 +83,7 @@ class Solver {
         for (int row = 0; row < size - 2; row++) {
             states = solveRow(row, states);
         }
-        int bestScore = states.values().stream().max(Comparator.comparing(State::getScore)).get().getScore();
+        final int bestScore = states.values().stream().max(Comparator.comparing(State::getScore)).get().getScore();
         final List<State> allSolutions = states.values().stream().filter(state -> state.getScore() == bestScore).collect(Collectors.toList());
         final Iterator<State> iterator = allSolutions.iterator();
         final State result = iterator.next();
@@ -87,7 +93,7 @@ class Solver {
         return result;
     }
 
-    private HashMap<Integer, State> solveRow(int row, HashMap<Integer, State> states) {
+    private HashMap<Integer, State> solveRow(final int row, final HashMap<Integer, State> states) {
         final HashMap<Integer, State> newStates = new HashMap<>();
         for (final State state : states.values()) {
             for (int combination = 0; combination < combinations; combination++) {
@@ -103,7 +109,7 @@ class Solver {
         return newStates;
     }
 
-    private State tryCreate(State state, int row, int combination) {
+    private State tryCreate(final State state, final int row, final int combination) {
         int numPlacements = 0;
         for (int column = 0; column < size - 2; column++) {
             if ((combination & (1 << column)) != 0) {
@@ -131,7 +137,7 @@ class Solver {
         return newState;
     }
 
-    private boolean canPlace(int row, int column, State state) {
+    private boolean canPlace(final int row, final int column, final State state) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (!grid[row + i][column + j] || state.filled(row + i, column + j)) {
@@ -142,7 +148,7 @@ class Solver {
         return true;
     }
 
-    private void maybeAddState(HashMap<Integer, State> states, State state) {
+    private void maybeAddState(final HashMap<Integer, State> states, final State state) {
         final int key = state.getBitmask1() | (state.getBitmask2() << 16);
         final State prevState = states.get(key);
         if (prevState == null) {
@@ -154,7 +160,7 @@ class Solver {
         }
     }
 
-    private boolean isValid(int combination) {
+    private boolean isValid(final int combination) {
         return ((combination & (combination >>> 1)) | (combination & (combination >>> 2))) == 0;
     }
 }

@@ -19,7 +19,7 @@ class State {
     // Top left corners of placed buildings
     private final int combination;
 
-    private ArrayList<State> others;
+    private final ArrayList<State> others;
 
     public State(final boolean[][] grid, final State prev, final int row, final int score, final int bitmask1, final int bitmask2, final int combination) {
         this.grid = grid;
@@ -33,6 +33,7 @@ class State {
         this.bitmask1 = bitmask1;
         this.bitmask2 = bitmask2;
         this.combination = combination;
+        this.others = new ArrayList<>();
     }
 
     public int getScore() {
@@ -62,16 +63,16 @@ class State {
     }
 
     public Placements toPlacements() {
-        List<Placements.Point> points = new ArrayList<>();
+        final List<Point> points = new ArrayList<>();
         addPoints(points);
         return new Placements(grid, points);
     }
 
-    private void addPoints(List<Placements.Point> points) {
+    private void addPoints(List<Point> points) {
         for (int column = 0; column < size - 2; column++) {
             if (((1 << column) & combination) != 0) {
                 // add the center, not the top left
-                points.add(new Placements.Point(row + 1, column + 1));
+                points.add(new Point(row + 1, column + 1));
             }
         }
         if (prev != null) {
@@ -85,33 +86,21 @@ class State {
     }
 
     public void addOther(final State other) {
-        if (others == null) {
-            others = new ArrayList<>();
-        }
         others.add(other);
     }
 
     public int countSolutions() {
-        int sum;
-        if (prev == null) {
-            sum = 1;
-        } else {
-            sum = prev.countSolutions();
-        }
-        if (others != null) {
-            for (State other : others) {
-                sum += other.countSolutions();
-            }
+        int sum = prev == null ? 1 : prev.countSolutions();
+        for (final State other : others) {
+            sum += other.countSolutions();
         }
         return sum;
     }
 
     public ArrayList<State> getAllSolutions() {
-        ArrayList<State> solutions = new ArrayList<>();
-        if (others != null) {
-            for (State other : others) {
-                solutions.addAll(other.getAllSolutions());
-            }
+        final ArrayList<State> solutions = new ArrayList<>();
+        for (final State other : others) {
+            solutions.addAll(other.getAllSolutions());
         }
         if (prev != null) {
             ArrayList<State> prevSolutions = prev.getAllSolutions();

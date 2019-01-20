@@ -1,12 +1,12 @@
 import java.util.*;
-import java.util.function.Function;
 
 public class Placements implements Comparable<Placements> {
+    private static final Comparator<Placements> COMPARATOR = Comparator.comparing(Placements::getPoints, Placements::compareLists);
     private final boolean[][] grid;
     private final int size;
     private final List<Point> points;
 
-    public Placements(boolean[][] grid, List<Point> points) {
+    public Placements(final boolean[][] grid, final List<Point> points) {
         this.grid = grid;
         this.points = points;
         points.sort(Point::compareTo);
@@ -65,7 +65,7 @@ public class Placements implements Comparable<Placements> {
         return all[0];
     }
 
-    public Placements rotate() {
+    private Placements rotate() {
         final List<Point> points2 = new ArrayList<>();
         for (final Point point : points) {
             points2.add(point.rotate(size));
@@ -74,7 +74,7 @@ public class Placements implements Comparable<Placements> {
         return new Placements(grid, points2);
     }
 
-    public Placements mirror() {
+    private Placements mirror() {
         List<Point> points2 = new ArrayList<>();
         for (Point point : points) {
             points2.add(point.mirror(size));
@@ -83,16 +83,16 @@ public class Placements implements Comparable<Placements> {
         return new Placements(grid, points2);
     }
 
-    public List<Point> getPoints() {
+    private List<Point> getPoints() {
         return points;
     }
 
     @Override
-    public int compareTo(Placements o) {
-        return Comparator.comparing(Placements::getPoints, this::compareLists).compare(this, o);
+    public int compareTo(final Placements o) {
+        return COMPARATOR.compare(this, o);
     }
 
-    private int compareLists(final List<Point> o1, final List<Point> o2) {
+    private static int compareLists(final List<Point> o1, final List<Point> o2) {
         final Iterator<Point> iterator1 = o1.iterator();
         final Iterator<Point> iterator2 = o2.iterator();
         while (true) {
@@ -115,7 +115,7 @@ public class Placements implements Comparable<Placements> {
 
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Placements that = (Placements) o;
@@ -129,54 +129,16 @@ public class Placements implements Comparable<Placements> {
         return result;
     }
 
-    static class Point implements Comparable<Point> {
-        private static final Comparator<Point> COMPARATOR = Comparator.comparingInt(Point::getRow).thenComparingInt(Point::getColumn);
-        private final int row;
-        private final int column;
+    public int symmetries() {
+        final Placements r1 = this.rotate();
+        final Placements r2 = r1.rotate();
+        final Placements r3 = r2.rotate();
+        final Placements m0 = this.mirror();
+        final Placements m1 = m0.mirror();
+        final Placements m2 = m1.rotate();
+        final Placements m3 = m2.rotate();
 
-        public Point(int row, int column) {
-            this.row = row;
-            this.column = column;
-        }
-
-        @Override
-        public int compareTo(Point o) {
-            return COMPARATOR.compare(this, o);
-        }
-
-        public int getRow() {
-            return row;
-        }
-
-        public int getColumn() {
-            return column;
-        }
-
-        public Point rotate(int size) {
-            return new Point(size - column - 1, row);
-        }
-
-        public Point mirror(int size) {
-            return new Point(size - row - 1, column);
-        }
-
-        @Override
-        public String toString() {
-            return "" + '(' + row + ", " + column + ')';
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Point point = (Point) o;
-            return row == point.row &&
-                    column == point.column;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(row, column);
-        }
+        return new HashSet<>(Arrays.asList(this, r1, r2, r3, m0, m1, m2, m3)).size();
     }
+
 }

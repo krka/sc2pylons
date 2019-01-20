@@ -72,39 +72,62 @@ To get an upper bound of the number of 3x3 buildings we can place on this grid, 
 
 It's therefore not possible to place more than 19 3x3 buildings for a single pylon.
 
+# Current knowledge
+
+This answer has been asked and answered before, see
+[stackexchange/whats-the-maximum-number-of-gateways-you-can-power-off-1-pylon](https://gaming.stackexchange.com/questions/135803/whats-the-maximum-number-of-gateways-you-can-power-off-1-pylon)
+and
+[/r/16_gates_1_pylon_in_response_to_rotterdams](https://www.reddit.com/r/starcraft/comments/1ok9uv/16_gates_1_pylon_in_response_to_rotterdams/)
+
+but I am not aware if any further optimizations have been properly investigated.
+
+Here follows an attempt to do just that.
+
 # Finding an exact solution
 
 How do we find an optimal solution to this? We could obviously try all combinations of placements for 19 buildings until we find something that works.
 We have 172 buildable cells, and 108 possible 3x3 building placements, so that would mean we need to try `108 * 107 * .. * 90` combinations - far too many to do efficiently.
 
-A better approach would be to do it with Dynamic Programming. We evaluate one row at a time and keep track of how many buildings we have placed so far, as well as a bitmap of which cells we have filled in the two rows above. If we encounter the same bitmap twice, we keep the one with the highest number of buildings.
+A better approach would be to do it with Dynamic Programming. We evaluate one row at a time and keep track of how many buildings
+we have placed so far, as well as a bitmap of which cells we have filled in the two rows above. If we encounter the same bitmap twice, we keep the one with the highest number of buildings.
 
-This is somewhat feasible approach. For each row we visit, we'll need to evaluate all combinations of placements on that row, which is on the order of `2^N` (but our N is 14 so it's ok). For each such combination we also need to compare against our bitmap. The bitmap is of size `2*N` so there could be up to `2^(2*N)` of them. For each row we get a total runtime of `2^(3N)`. Fortunately since we're only placing 3x3 buildings on the grid, most of the combinations can be filtered out so it's less than that in practice.
+This is somewhat feasible approach. For each row we visit, we'll need to evaluate all combinations of placements on that row, which is on the order of `2^N`
+(but our N is 14 so it's ok). For each such combination we also need to compare against our bitmap. The bitmap is of size `2*N` so there could be up to `2^(2*N)` of them.
+For each row we get a total runtime of `2^(3N)`. Fortunately since we're only placing 3x3 buildings on the grid, most of the combinations can be filtered out so it's less than that in practice.
 
 We then need to do this for each row, so we end up with: `N*2^(3N)`.
 
-This can be implemented efficiently and we get the following output:
+This can be implemented efficiently and we get our answer.
+
+You can not place more than 16 3x3-buildings in a single pylon field.
+You can do that in 834 different ways.
+255 of those are unique when you take rotations and mirroring into account.
+
+Here's the actual output:
+
 ```
 Best score: 16
-Solution:
-...#┌─┐┌─┐#...
-.┌─┐│ ││ │┌─┐.
-.│ │└─┘└─┘│ │.
-#└─┘┌─┐┌─┐└─┘#
-┌─┐#│ ││ │#┌─┐
-│ │#└─┘└─┘#│ │
-└─┘┌─┐╔╗┌─┐└─┘
-┌─┐│ │╚╝│ │┌─┐
-│ │└─┘##└─┘│ │
-└─┘#┌─┐┌─┐#└─┘
-#┌─┐│ ││ │┌─┐#
-.│ │└─┘└─┘│ │.
-.└─┘######└─┘.
-...########...
+Number of solutions: 834
+Number of distinct solutions: 255
+Symmetry score 2:
+XXX.┌─┐┌─┐.XXX    XXX.┌─┐┌─┐.XXX    XXX.┌─┐┌─┐.XXX    XXX.┌─┐┌─┐.XXX    XXX.┌─┐....XXX
+X┌─┐│ ││ │┌─┐X    X┌─┐│ ││ │┌─┐X    X┌─┐│ ││ │┌─┐X    X┌─┐│ ││ │┌─┐X    X┌─┐│ │┌─┐┌─┐X
+X│ │└─┘└─┘│ │X    X│ │└─┘└─┘│ │X    X│ │└─┘└─┘│ │X    X│ │└─┘└─┘│ │X    X│ │└─┘│ ││ │X
+.└─┘┌─┐...└─┘.    .└─┘.┌─┐..└─┘.    .└─┘┌─┐┌─┐└─┘.    .└─┘┌─┐┌─┐└─┘.    .└─┘┌─┐└─┘└─┘.
+┌─┐.│ │.┌─┐┌─┐    ┌─┐..│ │...┌─┐    ┌─┐.│ ││ │.┌─┐    .┌─┐│ ││ │┌─┐.    .┌─┐│ │.┌─┐┌─┐
+│ │.└─┘.│ ││ │    │ │..└─┘┌─┐│ │    │ │.└─┘└─┘.│ │    .│ │└─┘└─┘│ │.    .│ │└─┘.│ ││ │
+└─┘...╔╗└─┘└─┘    └─┘┌─┐╔╗│ │└─┘    └─┘...╔╗...└─┘    .└─┘..╔╗..└─┘.    .└─┘..╔╗└─┘└─┘
+┌─┐┌─┐╚╝...┌─┐    ┌─┐│ │╚╝└─┘┌─┐    ┌─┐...╚╝...┌─┐    .┌─┐..╚╝..┌─┐.    ┌─┐┌─┐╚╝..┌─┐.
+│ ││ │.┌─┐.│ │    │ │└─┘┌─┐..│ │    │ │.┌─┐┌─┐.│ │    .│ │┌─┐┌─┐│ │.    │ ││ │.┌─┐│ │.
+└─┘└─┘.│ │.└─┘    └─┘...│ │..└─┘    └─┘.│ ││ │.└─┘    .└─┘│ ││ │└─┘.    └─┘└─┘.│ │└─┘.
+.┌─┐...└─┘┌─┐.    .┌─┐..└─┘.┌─┐.    .┌─┐└─┘└─┘┌─┐.    .┌─┐└─┘└─┘┌─┐.    .┌─┐┌─┐└─┘┌─┐.
+X│ │┌─┐┌─┐│ │X    X│ │┌─┐┌─┐│ │X    X│ │┌─┐┌─┐│ │X    X│ │┌─┐┌─┐│ │X    X│ ││ │┌─┐│ │X
+X└─┘│ ││ │└─┘X    X└─┘│ ││ │└─┘X    X└─┘│ ││ │└─┘X    X└─┘│ ││ │└─┘X    X└─┘└─┘│ │└─┘X
+XXX.└─┘└─┘.XXX    XXX.└─┘└─┘.XXX    XXX.└─┘└─┘.XXX    XXX.└─┘└─┘.XXX    XXX....└─┘.XXX
 ```
 
-(This only is only one of many possible solutions).
+(For full output, run the program)
 
 # The code
 
-All of the code for computing this is inside this repository!
+All of the code for computing this is inside this repository.
